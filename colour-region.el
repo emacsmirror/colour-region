@@ -5,7 +5,7 @@
 ;; Author: Joe Bloggs <vapniks@yahoo.com>
 ;; Maintainer: Joe Bloggs <vapniks@yahoo.com>
 ;; Copyleft (Ↄ) 2013, Joe Bloggs, all rites reversed.
-;; Created: 2013-05-04 21:37:20
+;; Created: Sometime in 2008 (can't remember when exactly)
 ;; Version: 0.1
 ;; Last-Updated: 2013-05-04 21:37:20
 ;;           By: Joe Bloggs
@@ -57,8 +57,9 @@
 
 ;;; Customize:
 ;;
-;; To automatically insert descriptions of customizable variables defined in this buffer
-;; place point at the beginning of the next line and do: M-x insert-customizable-variable-descriptions
+;; `colour-region-formats' : List of text-properties to apply to each region type.
+;; `colour-region-save-on-kill' : If set to t then save colour-regions when buffer is killed.
+;; `colour-region-load-on-find-file' : If set to t then always load colour-regions when a new file is opened.
 
 ;;
 ;; All of the above can customized by:
@@ -198,8 +199,8 @@ If set to prompt then prompt to load. If nil then don't load."
 (make-variable-buffer-local 'colour-region-load-on-find-file)
 
 ;;; create new colour-region format list and append to colour-region-formats
-(defun colour-region-create-new-type ()
-  "create new colour-region format list and append to colour-region-formats"
+(defun colour-region-create-new-type nil
+  "Create new colour-region format list and append to colour-region-formats."
   (let* ((newtypenum (1+ (length colour-region-formats)))
 	 (newtypestring (number-to-string newtypenum))
 	 (newhiddenformat
@@ -242,9 +243,10 @@ an overlay corresponding to the colour-region")
 (defun colour-region-new (comment)
   "Create a new colour-region for selected region (if no region is selected inform user):
 1) Prompt user for comment for colour-region. 
-2) If a positive prefix argument is given set colour-region type to that corresponding woth prefix argument. Otherwise use type 1 colour-region.
+2) If a positive prefix argument is given set colour-region type to that corresponding with prefix argument.
+   Otherwise use type 1 colour-region.
 3) Set state of colour-region to 1.
-4) Add colour-region to colour-regions.
+4) Add colour-region to colour-regions variable.
 5) Apply overlay with format in colour-region-formats corresponding to state and type of colour-region.
 
 Actually internal type and state values start from 0 not 1, 
@@ -542,7 +544,7 @@ with type corresponding to that prefix argument."
 
 
 ;;; jump to next colour-region in current buffer
-(defun colour-region-next ()
+(defun colour-region-next nil
   "Move point to next colour-region in current buffer.
 
 If no prefix argument is given, move to next colour-region in current buffer.
@@ -578,7 +580,7 @@ corresponding to that prefix argument."
       (message "No further colour-regions found in current buffer!"))))
 
 ;;; jump to previous colour-region in current buffer
-(defun colour-region-previous ()
+(defun colour-region-previous nil
   "Move point to previous colour-region in current buffer.
 
 If no prefix argument is given, move to previous colour-region in current buffer.
@@ -612,11 +614,9 @@ corresponding to that prefix argument."
 		  (setq best (nth 1 current))))))
       (if best (goto-char best)
 	(message "No further colour-regions found in current buffer!"))))
- 
-
 
 ;;; copy colour-region to colour-region-kill-ring
-(defun colour-region-copy ()
+(defun colour-region-copy nil
   "Copy colour-region to colour-region-kill-ring.
 With no prefix argument copy nearest colour-region.
 With non-zero prefix argument copy all colour-regions of type corresponding to argument.
@@ -625,7 +625,7 @@ With prefix argument of zero copy all colour-regions in current buffer."
   )
 
 ;;; kill colour-region to colour-region-kill-ring
-(defun colour-region-kill ()
+(defun colour-region-kill nil
   "Kill colour-region and hidden text to colour-region-kill-ring.
 With no prefix argument kill nearest colour-region.
 With non-zero prefix argument kill all colour-regions of type corresponding to argument.
@@ -642,14 +642,14 @@ If a prefix argument of 0 is given, apply to all colour-regions in current buffe
 If a positive non-zero prefix argument is given, apply to all colour-regions in current buffer
 with type corresponding to that prefix argument."
   (interactive
-   (read-string "Comment string (default is first line of region): " nil nil 
-                ;; set default comment string to first line of region
-                (buffer-substring-no-properties (region-beginning) 
-                                                (let ((oldpoint (point)) lineend) 
-                                                  (goto-char (region-beginning)) 
-                                                  (setq lineend (line-end-position)) 
-                                                  (goto-char oldpoint) 
-                                                  (min lineend (region-end))))))
+   (list (read-string "Comment string (default is first line of region): " nil nil 
+                      ;; set default comment string to first line of region
+                      (buffer-substring-no-properties (region-beginning) 
+                                                      (let ((oldpoint (point)) lineend) 
+                                                        (goto-char (region-beginning)) 
+                                                        (setq lineend (line-end-position)) 
+                                                        (goto-char oldpoint) 
+                                                        (min lineend (region-end)))))))
   (if current-prefix-arg
       ;; if prefix argument is 0, change all colour-regions in current buffer
       (if (equal current-prefix-arg 0)
@@ -781,7 +781,6 @@ Returns nil if no colour-region satisfying 'predicate' is found in current buffe
 	  (overlay-put newoverlay (car currentproperty) (cdr currentproperty))))
       ;; update overlay stored in colourregion
       (setcar (nthcdr (1- (length colourregion)) colourregion) newoverlay))))
-
 
 ;;; toggle overlay state of colourregion
 (defun colour-region-apply-toggle-overlay (colourregion)
@@ -945,20 +944,20 @@ and copy to current buffer at point"
     (colour-region-apply-overlay colourregion)))
 
 ;;; Update the start and end information in colour regions
-(defun colour-region-update-start-end ()
+(defun colour-region-update-start-end nil
   (dolist (current colour-regions)
     (colour-region-apply-update-start-end current)))
 
 ;;; Create and update overlays in colour-regions according to
 ;; start, end, type and status values
-(defun colour-region-update-overlays ()
+(defun colour-region-update-overlays nil
   (dolist (current colour-regions)
     (colour-region-apply-update-overlay current)))
 
 ;;; Hook for saving colour-regions when emacs is killed.
 ;; Note: colour-regions will not be usable after running this function until it
 ;; is restored with colour-region-update-overlays
-(defun colour-region-kill-emacs-hook ()
+(defun colour-region-kill-emacs-hook nil
   ;; need to adjust colour-regions for each buffer, since it is a buffer local variable
   (dolist (thisbuffer (buffer-list)) 
     (with-current-buffer thisbuffer
@@ -970,7 +969,7 @@ and copy to current buffer at point"
 		  (colour-region-save))
 	    (colour-region-save))))))
 
-(defun colour-region-kill-buffer-hook ()
+(defun colour-region-kill-buffer-hook nil
   "Save colour-regions if buffer is killed, and colour-region-save-on-kill is t.
 Prompt for save if colour-region-save-on-kill equals 'prompt."
   (if (and colour-region-save-on-kill (> (length colour-regions) 0))
@@ -981,7 +980,7 @@ Prompt for save if colour-region-save-on-kill equals 'prompt."
 	      (colour-region-save))
 	(colour-region-save))))
 
-(defun colour-region-find-file-hook ()
+(defun colour-region-find-file-hook nil
   "If colour-region-load-on-find-file is t, load colour-regions from filename returned by colour-region-default-save-file function. If colour-region-load-on-find-file is equal to 'prompt, then prompt the user first. If colour-region-load-on-find-file is nil, or the filename returned by colour-region-default-save-file doesn't exist, then don't load."
   (let ((filename (colour-region-default-save-file)))
     (if (and colour-region-load-on-find-file
@@ -994,7 +993,7 @@ Prompt for save if colour-region-save-on-kill equals 'prompt."
 	  (colour-region-load)))))
 
 ;;; Initialization function
-(defun colour-region-initialize ()
+(defun colour-region-initialize nil
   "Initialize colour-region; setup hooks."
   (add-hook 'find-file-hook 'colour-region-find-file-hook t)
   (add-hook 'kill-buffer-hook 'colour-region-kill-buffer-hook t)
@@ -1045,7 +1044,7 @@ the colour-region-default-save-file function."
       (eval (read string))
       (colour-region-update-overlays))))
 
-(defun colour-region-default-save-file ()
+(defun colour-region-default-save-file nil
   "Returns the default filename for the current buffer for saving colour-regions"
   (concat default-directory ".colour-regions_for_" (buffer-name)))
 
