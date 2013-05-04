@@ -1,0 +1,8 @@
+
+* Commentary
+
+* Installation
+
+ - If you have [[http://www.marmalade-repo.org/][marmalade-repo.org]], this colour-region is part of the emacs packges you can install.  Just type M-x package-install colour-region marmalade 
+ - Otherwise download the library from here Lisp:colour-region, and put it in a directory in the emacs load path, like ~/.emacs.d
+ - Add (require 'colour-region) in your ~/.emacs file
