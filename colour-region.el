@@ -79,8 +79,8 @@
 
 ;;; TODO
 ;;
+;;  colour-region-kill, colour-region-copy
 ;; 
-;;
 
 ;;; Require
 
@@ -615,6 +615,31 @@ corresponding to that prefix argument."
       (if best (goto-char best)
 	(message "No further colour-regions found in current buffer!"))))
 
+(defun colour-region-apply-according-to-prefix (func)
+  "Apply function FUNC to colour region(s) according to current prefix arg.
+
+With no prefix argument apply to nearest colour-region.
+With non-zero prefix argument apply to all colour-regions of type corresponding to argument.
+With prefix argument of zero apply to all colour-regions in current buffer."
+  (if current-prefix-arg
+      ;; if prefix argument is 0, change all colour-regions in current buffer
+      (if (equal current-prefix-arg 0)
+          (dolist (current colour-regions)
+            (if (equal (buffer-name) (car current))
+                (apply func cregion))) 
+        ;; else if prefix argument is other number, change corresponding colour-regions
+        (if (and (<= current-prefix-arg (length colour-region-formats)) (> current-prefix-arg 0))
+            (dolist (current colour-regions)
+              (if (and (equal (buffer-name) (car current)) 
+                       (equal (nth 4 current) (1- current-prefix-arg)))
+                  (apply func cregion)))))
+    ;; otherwise (e.g. no prefix argument) just change the one closest to point
+    (let ((bestindex (colour-region-find-nearest (lambda (hideregion) t))))
+      (if bestindex (let ((current (nth bestindex colour-regions)))
+                      (apply func cregion))
+        ;; else give message to user
+        (message "No colour-regions found in current buffer!")))))
+
 ;;; copy colour-region to colour-region-kill-ring
 (defun colour-region-copy nil
   "Copy colour-region to colour-region-kill-ring.
@@ -622,7 +647,7 @@ With no prefix argument copy nearest colour-region.
 With non-zero prefix argument copy all colour-regions of type corresponding to argument.
 With prefix argument of zero copy all colour-regions in current buffer."
   (interactive)
-  )
+  (colour-region-apply-according-to-prefix ???))
 
 ;;; kill colour-region to colour-region-kill-ring
 (defun colour-region-kill nil
@@ -631,7 +656,7 @@ With no prefix argument kill nearest colour-region.
 With non-zero prefix argument kill all colour-regions of type corresponding to argument.
 With prefix argument of zero kill all colour-regions in current buffer."
   (interactive)
-  )
+  (colour-region-apply-according-to-prefix ???))
 
 ;;; change the comment of colour-region(s)
 (defun colour-region-change-comment (comment)
@@ -650,29 +675,10 @@ with type corresponding to that prefix argument."
                                                         (setq lineend (line-end-position)) 
                                                         (goto-char oldpoint) 
                                                         (min lineend (region-end)))))))
-  (if current-prefix-arg
-      ;; if prefix argument is 0, change all colour-regions in current buffer
-      (if (equal current-prefix-arg 0)
-	  (dolist (current colour-regions)
-	    (if (equal (buffer-name) (car current))
-		(progn 
-		  (setcar (nthcdr 3 current) comment)
-		  (colour-region-apply-overlay current)))) 
-	;; else if prefix argument is other number, change corresponding colour-regions
-	(if (and (<= current-prefix-arg (length colour-region-formats)) (> current-prefix-arg 0))
-	    (dolist (current colour-regions)
-	      (if (and (equal (buffer-name) (car current)) 
-		       (equal (nth 4 current) (1- current-prefix-arg)))
-		  (progn
-		    (setcar (nthcdr 3 current) comment)
-		    (colour-region-apply-overlay current))))))
-    ;; otherwise (e.g. no prefix argument) just change the one closest to point
-    (let ((bestindex (colour-region-find-nearest (lambda (hideregion) t))))
-      (if bestindex (let ((current (nth bestindex colour-regions)))
-		      (setcar (nthcdr 3 current) comment)
-		      (colour-region-apply-overlay current))
-	;; else give message to user
-	(message "No colour-regions found in current buffer!")))))
+  (colour-region-apply-according-to-prefix
+   (lambda (cregion)
+     (setcar (nthcdr 3 current) comment)
+     (colour-region-apply-overlay current))))
 
 ;;; Change the type of colour-region(s)
 (defun colour-region-change-type (type)
@@ -693,33 +699,12 @@ with type corresponding to that prefix argument."
 	(setq type (length colour-region-formats))
 	(colour-region-create-new-type))
     (setq type (1- type)))
-  (if current-prefix-arg
-      ;; if prefix argument is 0, change all colour-regions in current buffer
-      (if (equal current-prefix-arg 0)
-	  (dolist (current colour-regions)
-	    (if (equal (buffer-name) (car current))
-		(if (> type -1)
-                    ;; only change type if number entered was > 0
-                    (progn (setcar (nthcdr 4 current) type)
-                           (colour-region-apply-overlay current))))) 
-	;; else if prefix argument is other number, change corresponding colour-regions
-	(if (and (<= current-prefix-arg (length colour-region-formats)) (> current-prefix-arg 0))
-	    (dolist (current colour-regions)
-	      (if (and (equal (buffer-name) (car current)) 
-		       (equal (nth 4 current) (1- current-prefix-arg)))
-		  (if (> type -1)
-                      ;; only change type if number entered was > 0
-                      (progn (setcar (nthcdr 4 current) type)
-                             (colour-region-apply-overlay current))))))) 
-    ;; otherwise (e.g. no prefix argument) just change the one closest to point
-    (let ((bestindex (colour-region-find-nearest (lambda (hideregion) t))))
-      (if bestindex (let ((current (nth bestindex colour-regions)))
-		      (if (> type -1)
-			  ;; only change type if number entered was > 0
-			  (progn (setcar (nthcdr 4 current) type)
-				 (colour-region-apply-overlay current))))
-	;; else give message to user
-	(message "No colour-regions found in current buffer!")))))
+  (colour-region-apply-according-to-prefix
+   (lambda (cregion)
+     (if (> type -1)
+         (progn
+           (setcar (nthcdr 4 current) type)
+           (colour-region-apply-overlay current))))))
 
 ;;; find the colour-region satisfying given predicate that is nearest to point
 ;; in the current buffer.
