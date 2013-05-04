@@ -325,28 +325,10 @@ with type corresponding to that prefix argument."
   (if (and mark-active (not (equal (point) (mark))))
       ;; if a region has been selected then just call colour-region-new
       (call-interactively 'colour-region-new)
-    (if current-prefix-arg
-	;; if prefix argument is 0, save text of all colour-regions in current buffer
-	(progn
-	  (if (equal current-prefix-arg 0)
-	      (dolist (current colour-regions) 
-		(if (equal (buffer-name) (car current))
-		    (colour-region-apply-save-text-part current 1)))
-	    ;; else if prefix argument is other number, save corresponding colour-regions
-	    (if (and (<= current-prefix-arg (length colour-region-formats)) (> current-prefix-arg 0))
-		(dolist (current colour-regions)
-		  (if (and (equal (buffer-name) (car current))
-			   (equal (nth 4 current) (1- current-prefix-arg)))
-		      (colour-region-apply-save-text-part current 1)))))
-	  (message "New text region saved"))
-      ;; otherwise (e.g. no prefix argument) just save the one closest to point
-      (let ((bestindex (colour-region-find-nearest (lambda (colourregion) t))))
-	(if bestindex 
-	    (progn
-	      (colour-region-apply-save-text-part (nth bestindex colour-regions) 1)
-	      (message "New text region saved"))
-	  ;; else give message to user
-	  (message "No colour-regions found in current buffer!"))))))
+    (colour-region-apply-according-to-prefix
+     (lambda (cregion)
+       (colour-region-apply-save-text-part cregion 1)
+       (message "New text region saved")))))
 
 ;;; Toggle overlay state of colour-region(s), or create new colour-region if region is selected.
 (defun colour-region-toggle-overlay nil
@@ -363,24 +345,10 @@ with type corresponding to that prefix argument."
   (if (and mark-active (not (equal (point) (mark))))
       ;; if a region has been selected then just call colour-region-new
       (call-interactively 'colour-region-new)
-    (if current-prefix-arg
-	;; if prefix argument is 0, toggle all colour-regions in current buffer
-	(if (equal current-prefix-arg 0)
-	    (dolist (current colour-regions) 
-	      (if (equal (buffer-name) (car current))
-		  (colour-region-apply-toggle-overlay current)))
-	  ;; else if prefix argument is other number, toggle corresponding colour-regions
-	  (if (and (<= current-prefix-arg (length colour-region-formats)) (> current-prefix-arg 0))
-	      (dolist (current colour-regions) 
-		(if (and (equal (buffer-name) (car current))
-			 (equal (nth 4 current) (1- current-prefix-arg)))
-		    (colour-region-apply-toggle-overlay current)))))
-      ;; otherwise (e.g. no prefix argument) just toggle the one closest to point
-      (let ((bestindex (colour-region-find-nearest (lambda (colourregion) t))))
-        (if bestindex (colour-region-apply-toggle-overlay (nth bestindex colour-regions))
-          ;; else give message to user
-          (message "No colour-regions found in current buffer!"))))))
-
+    (colour-region-apply-according-to-prefix
+     (lambda (cregion)
+       (colour-region-apply-toggle-overlay cregion)))))
+    
 ;;; Toggle text-state of colour-region(s) or create new colour-region is region is selected
 (defun colour-region-toggle-text nil
   "If region is selected then run colour-region-new function.
@@ -397,24 +365,10 @@ with type corresponding to that prefix argument."
   (if (and mark-active (not (equal (point) (mark))))
       ;; if a region has been selected then just call colour-region-new
       (call-interactively 'colour-region-new)
-    (if current-prefix-arg
-	;; if prefix argument is 0, toggle all colour-regions in current buffer
-	(if (equal current-prefix-arg 0)
-	    (dolist (current colour-regions) 
-	      (if (equal (buffer-name) (car current))
-		  (colour-region-apply-toggle-text-part current)))
-	  ;; else if prefix argument is other number, toggle corresponding colour-regions
-	  (if (and (<= current-prefix-arg (length colour-region-formats)) (> current-prefix-arg 0))
-	      (dolist (current colour-regions) 
-		(if (and (equal (buffer-name) (car current))
-			 (equal (nth 4 current) (1- current-prefix-arg)))
-		    (colour-region-apply-toggle-text-part current)))))
-      ;; otherwise (e.g. no prefix argument) just toggle the one closest to point
-      (let ((bestindex (colour-region-find-nearest (lambda (colourregion) t))))
-        (if bestindex (colour-region-apply-toggle-text-part (nth bestindex colour-regions))
-          ;; else give message to user
-          (message "No colour-regions found in current buffer!"))))))
-
+    (colour-region-apply-according-to-prefix
+     (lambda (cregion)
+       (colour-region-apply-toggle-text-part cregion)))))
+    
 ;;; Remove colour-region overlay and delete it from colour-regions.
 (defun colour-region-remove nil
   "Remove colour-region(s), and delete from colour-regions.
@@ -424,24 +378,10 @@ If a prefix argument of 0 is given, apply to all colour-regions in current buffe
 If a positive non-zero prefix argument is given, apply to all colour-regions in current buffer
 with type corresponding to that prefix argument."
   (interactive)
-  (if current-prefix-arg
-      ;; if prefix argument is 0, remove all colour-regions in current buffer
-      (if (equal current-prefix-arg 0)
-	  (dolist (current colour-regions)
-	    (if (equal (buffer-name) (car current))
-		(colour-region-apply-remove current))) 
-	;; else if prefix argument is other number, remove corresponding colour-regions
-	(if (and (<= current-prefix-arg (length colour-region-formats)) (> current-prefix-arg 0))
-	    (dolist (current colour-regions)
-	      (if (and (equal (buffer-name) (car current)) 
-		       (equal (nth 4 current) (1- current-prefix-arg)))
-		  (colour-region-apply-remove current)))))
-    ;; otherwise (e.g. no prefix argument) just remove the one closest to point
-    (let ((bestindex (colour-region-find-nearest (lambda (hideregion) t))))
-      (if bestindex (colour-region-apply-remove (nth bestindex colour-regions))
-        ;; else give message to user
-        (message "No colour-regions found in current buffer!")))))
-
+  (colour-region-apply-according-to-prefix
+   (lambda (cregion)
+     (colour-region-apply-remove cregion))))
+  
 ;;; Apply elisp function to colour-region(s)
 (defun colour-region-func (func)
   "Apply a user-supplied elisp function to colour-region(s).
@@ -465,108 +405,37 @@ with type corresponding to that prefix argument."
 	(sort colour-regions 
 	      (lambda (overlayA overlayB) 
 		(< (nth 2 overlayA) (nth 2 overlayB)))))
-  (if current-prefix-arg
-      ;; if prefix argument is 0, apply to all colour-regions in current buffer
-      (if (equal current-prefix-arg 0)
-	  (dotimes (i (length colour-regions))
-	    ;; only consider overlays on current buffer
-	    (if (equal (buffer-name) (car (nth i colour-regions)))
-		;; need to keep track of changes to buffer positions
-		(let* ((oldpoint (point))
-		       (overlaytochange (nth i colour-regions))
-		       (overlaystart (nth 1 overlaytochange))
-		       (overlayend (nth 2 overlaytochange))
-		       newpoint change)
-		  (goto-char overlayend)
-		  ;; call function on current overlay
-		  (funcall func overlaystart overlayend)
-		  ;; work out how much buffer positions have changed
-		  (setq newpoint (point))
-		  (setq change (- newpoint overlayend))
-		  (goto-char oldpoint)
-		  ;; adjust overlays positions in colour-regions appropriately
-		  (dotimes (j (- (length colour-regions) i))
-		    (setq overlaytochangeB (nth (+ i j) colour-regions))
-		    (if (equal (nth 0 overlaytochangeB) (buffer-name))
-			(setcar (nthcdr (+ i j) colour-regions)
-				(list (nth 0 overlaytochangeB)
-				      (if (equal j 0)
-					  (nth 1 overlaytochangeB)
-                                        (+ (nth 1 overlaytochangeB) change))
-				      (+ (nth 2 overlaytochangeB) change)
-				      (nth 3 overlaytochangeB)
-				      (nth 4 overlaytochangeB)
-				      (nth 5 overlaytochangeB))))))))
-	;; else if prefix argument is other number, apply to all corresponding colour-regions
-	(if (and (< current-prefix-arg 7) (> current-prefix-arg 0))
-	    (dotimes (i (length colour-regions))
-	      ;; only consider overlays on current buffer of correct type
-	      (if (and (equal (buffer-name) (car (nth i colour-regions)))
-		       (equal (nth 4 (nth i colour-regions)) current-prefix-arg))
-		  ;; need to keep track of changes to buffer positions
-		  (let* ((oldpoint (point))
-			 (overlaytochange (nth i colour-regions))
-			 (overlaystart (nth 1 overlaytochange))
-			 (overlayend (nth 2 overlaytochange))
-			 newpoint change)
-		    (goto-char overlayend)
-		    ;; call function on current overlay
-		    (funcall func overlaystart overlayend)
-		    ;; work out how much buffer positions have changed
-		    (setq newpoint (point))
-		    (setq change (- newpoint overlayend))
-		    (goto-char oldpoint)
-		    ;; adjust overlays in colour-regions appropriately
-		    (dotimes (j (- (length colour-regions) i))
-		      (setq overlaytochangeB (nth (+ i j) colour-regions))
-		      (if (equal (nth 0 overlaytochangeB) (buffer-name))
-			  (setcar (nthcdr (+ i j) colour-regions)
-				  (list (nth 0 overlaytochangeB)
-					(if (equal j 0)
-					    (nth 1 overlaytochangeB)
-					  (+ (nth 1 overlaytochangeB) change))
-					(+ (nth 2 overlaytochangeB) change)
-					(nth 3 overlaytochangeB)
-					(nth 4 overlaytochangeB)
-					(nth 5 overlaytochangeB))))))))))
-    ;; if no prefix argument was given apply to nearest colour-region in current buffer
-    (let ((bestindex (colour-region-find-nearest (lambda (colourregion) t))))
-      (if bestindex
-	  ;; If a match was found then apply func to appropriate overlay,
-	  ;; and shift other overlays appropriately.
-	  ;; Need to keep track of changes to buffer positions.
-	  (let* ((oldpoint (point))
-		 (overlaytochange (nth bestindex colour-regions))
-		 (overlaystart (nth 1 overlaytochange))
-		 (overlayend (nth 2 overlaytochange))
-		 newpoint change)
-	    (goto-char overlayend)
-	    ;; call function on current overlay
-	    (funcall func overlaystart overlayend)
-	    ;; work out how much buffer positions have changed
-	    (setq newpoint (point))
-	    (setq change (- newpoint overlayend))
-	    (goto-char oldpoint)
-	    ;; adjust overlays in colour-regions appropriately
-	    (dotimes (j (- (length colour-regions) bestindex))
-	      (setq overlaytochangeB (nth (+ bestindex j) colour-regions))
-	      (if (equal (nth 0 overlaytochangeB) (buffer-name))
-		  (setcar (nthcdr (+ bestindex j) colour-regions)
-			  (list (nth 0 overlaytochangeB)
-				(if (equal j 0)
-				    (nth 1 overlaytochangeB)
-				  (+ (nth 1 overlaytochangeB) change))
-				(+ (nth 2 overlaytochangeB) change)
-				(nth 3 overlaytochangeB)
-				(nth 4 overlaytochangeB)
-				(nth 5 overlaytochangeB))))))
-	;; else give message to user
-	(message "No colour-region found in current buffer!"))))
+  (colour-region-apply-according-to-prefix
+   (lambda (cregion)
+     (let* ((oldpoint (point))
+            (overlaystart (nth 1 cregion))
+            (overlayend (nth 2 cregion))
+            (index (position cregion colour-regions))
+            newpoint change)
+       (goto-char overlayend)
+       ;; call function on current overlay
+       (funcall func overlaystart overlayend)
+       ;; work out how much buffer positions have changed
+       (setq newpoint (point))
+       (setq change (- newpoint overlayend))
+       (goto-char oldpoint)
+       ;; adjust overlays positions in colour-regions appropriately
+       (dotimes (j (- (length colour-regions) index))
+         (setq cregionB (nth (+ index j) colour-regions))
+         (if (equal (nth 0 cregionB) (buffer-name))
+             (setcar (nthcdr (+ index j) colour-regions)
+                     (list (nth 0 cregionB)
+                           (if (equal j 0)
+                               (nth 1 cregionB)
+                             (+ (nth 1 cregionB) change))
+                           (+ (nth 2 cregionB) change)
+                           (nth 3 cregionB)
+                           (nth 4 cregionB)
+                           (nth 5 cregionB))))))))
   ;; re-apply overlays to all colour-regions
   (dolist (overlaytochange colour-regions)
     (if (equal (buffer-name) (car overlaytochange))
 	(colour-region-apply-overlay overlaytochange))))
-
 
 ;;; jump to next colour-region in current buffer
 (defun colour-region-next nil
@@ -629,18 +498,16 @@ corresponding to that prefix argument."
 	    (lambda (colourregion) t)
 	    predicate2 
 	    (lambda (colourregion) (>= (nth 1 current) best))))
-      (dolist (current colour-regions)
-	(if (and (equal (nth 0 current) (buffer-name)) 
-		 (< (nth 1 current) (point)) 
-		 (funcall predicate1 current))
-	    (if (not best)
-		(setq best (nth 1 current))
-	      (if (funcall predicate2 current)
-		  (setq best (nth 1 current))))))
-      (if best (goto-char best)
-	(message "No further colour-regions found in current buffer!"))))
-
-
+    (dolist (current colour-regions)
+      (if (and (equal (nth 0 current) (buffer-name)) 
+               (< (nth 1 current) (point)) 
+               (funcall predicate1 current))
+          (if (not best)
+              (setq best (nth 1 current))
+            (if (funcall predicate2 current)
+                (setq best (nth 1 current))))))
+    (if best (goto-char best)
+      (message "No further colour-regions found in current buffer!"))))
 
 ;;; copy colour-region to colour-region-kill-ring
 (defun colour-region-copy nil
