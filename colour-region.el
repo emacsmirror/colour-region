@@ -516,7 +516,9 @@ With no prefix argument copy nearest colour-region.
 With non-zero prefix argument copy all colour-regions of type corresponding to argument.
 With prefix argument of zero copy all colour-regions in current buffer."
   (interactive)
-  (colour-region-apply-according-to-prefix ???))
+  (colour-region-apply-according-to-prefix
+   (lambda (cregion)
+     (colour-region-apply-copy cregion))))
 
 ;;; kill colour-region to colour-region-kill-ring
 (defun colour-region-kill nil
@@ -525,7 +527,9 @@ With no prefix argument kill nearest colour-region.
 With non-zero prefix argument kill all colour-regions of type corresponding to argument.
 With prefix argument of zero kill all colour-regions in current buffer."
   (interactive)
-  (colour-region-apply-according-to-prefix ???))
+  (colour-region-apply-according-to-prefix
+   (lambda (cregion)
+     (colour-region-apply-kill cregion))))
 
 ;;; change the comment of colour-region(s)
 (defun colour-region-change-comment (comment)
