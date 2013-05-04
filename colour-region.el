@@ -239,6 +239,31 @@ an overlay corresponding to the colour-region")
 (defvar colour-region-kill-ring nil
   "Variable to store killed/copied regions (that may be yanked with colour-region-yank).")
 
+(defun colour-region-apply-according-to-prefix (func)
+  "Apply function FUNC to colour region(s) according to current prefix arg.
+
+With no prefix argument apply to nearest colour-region.
+With non-zero prefix argument apply to all colour-regions of type corresponding to argument.
+With prefix argument of zero apply to all colour-regions in current buffer."
+  (if current-prefix-arg
+      ;; if prefix argument is 0, change all colour-regions in current buffer
+      (if (equal current-prefix-arg 0)
+          (dolist (current colour-regions)
+            (if (equal (buffer-name) (car current))
+                (apply func cregion))) 
+        ;; else if prefix argument is other number, change corresponding colour-regions
+        (if (and (<= current-prefix-arg (length colour-region-formats)) (> current-prefix-arg 0))
+            (dolist (current colour-regions)
+              (if (and (equal (buffer-name) (car current)) 
+                       (equal (nth 4 current) (1- current-prefix-arg)))
+                  (apply func cregion)))))
+    ;; otherwise (e.g. no prefix argument) just change the one closest to point
+    (let ((bestindex (colour-region-find-nearest (lambda (hideregion) t))))
+      (if bestindex (let ((current (nth bestindex colour-regions)))
+                      (apply func cregion))
+        ;; else give message to user
+        (message "No colour-regions found in current buffer!")))))
+
 ;;; Create new colour-region and place in colour-regions.
 (defun colour-region-new (comment)
   "Create a new colour-region for selected region (if no region is selected inform user):
@@ -615,30 +640,7 @@ corresponding to that prefix argument."
       (if best (goto-char best)
 	(message "No further colour-regions found in current buffer!"))))
 
-(defun colour-region-apply-according-to-prefix (func)
-  "Apply function FUNC to colour region(s) according to current prefix arg.
 
-With no prefix argument apply to nearest colour-region.
-With non-zero prefix argument apply to all colour-regions of type corresponding to argument.
-With prefix argument of zero apply to all colour-regions in current buffer."
-  (if current-prefix-arg
-      ;; if prefix argument is 0, change all colour-regions in current buffer
-      (if (equal current-prefix-arg 0)
-          (dolist (current colour-regions)
-            (if (equal (buffer-name) (car current))
-                (apply func cregion))) 
-        ;; else if prefix argument is other number, change corresponding colour-regions
-        (if (and (<= current-prefix-arg (length colour-region-formats)) (> current-prefix-arg 0))
-            (dolist (current colour-regions)
-              (if (and (equal (buffer-name) (car current)) 
-                       (equal (nth 4 current) (1- current-prefix-arg)))
-                  (apply func cregion)))))
-    ;; otherwise (e.g. no prefix argument) just change the one closest to point
-    (let ((bestindex (colour-region-find-nearest (lambda (hideregion) t))))
-      (if bestindex (let ((current (nth bestindex colour-regions)))
-                      (apply func cregion))
-        ;; else give message to user
-        (message "No colour-regions found in current buffer!")))))
 
 ;;; copy colour-region to colour-region-kill-ring
 (defun colour-region-copy nil
