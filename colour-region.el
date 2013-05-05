@@ -389,9 +389,9 @@ with type corresponding to that prefix argument."
   (interactive (list (read-minibuffer "Function to apply: ")))
   ;; remove all overlays from current buffer
   ;; (they will be reapplied later
-  (dolist (current colour-regions)
-    (if (equal (nth 0 current) (buffer-name))
-	(remove-overlays (nth 1 current) (nth 2 current))))
+  (dolist (cregion colour-regions)
+    (if (equal (nth 0 cregion) (buffer-name))
+	(remove-overlays (nth 1 cregion) (nth 2 cregion))))
   ;; sort colour-regions by end position
   ;; to make adjusting overlays easier later
   (setq colour-regions
@@ -442,18 +442,18 @@ corresponding to that prefix argument."
     (if current-prefix-arg
 	(if (equal current-prefix-arg 0)
 	    (setq predicate1 
-		  (lambda (colourregion) t)
+		  (lambda (cregion) t)
 		  predicate2 
-		  (lambda (colourregion) (> (nth 1 colourregion) best)))
+		  (lambda (cregion) (> (nth 1 cregion) best)))
  	  (if (and (<= current-prefix-arg (length colour-region-formats)) (> current-prefix-arg 0))
 	      (setq predicate1 
-		    (lambda (colourregion) (equal (nth 4 colourregion) (1- current-prefix-arg)))
+		    (lambda (cregion) (equal (nth 4 cregion) (1- current-prefix-arg)))
 		    predicate2
-		    (lambda (colourregion) (<= (nth 1 current) best)))))
+		    (lambda (cregion) (<= (nth 1 current) best)))))
       (setq predicate1 
-	    (lambda (colourregion) t)
+	    (lambda (cregion) t)
 	    predicate2 
-	    (lambda (colourregion) (<= (nth 1 current) best))))
+	    (lambda (cregion) (<= (nth 1 current) best))))
     (dolist (current colour-regions)
       (if (and (equal (nth 0 current) (buffer-name)) 
                (> (nth 1 current) (point)) 
@@ -477,18 +477,18 @@ corresponding to that prefix argument."
     (if current-prefix-arg
 	(if (equal current-prefix-arg 0)
 	    (setq predicate1 
-		  (lambda (colourregion) t)
+		  (lambda (cregion) t)
 		  predicate2 
-		  (lambda (colourregion) (< (nth 1 colourregion) best)))
+		  (lambda (cregion) (< (nth 1 cregion) best)))
  	  (if (and (<= current-prefix-arg (length colour-region-formats)) (> current-prefix-arg 0))
 	      (setq predicate1 
-		    (lambda (colourregion) (equal (nth 4 colourregion) (1- current-prefix-arg)))
+		    (lambda (cregion) (equal (nth 4 cregion) (1- current-prefix-arg)))
 		    predicate2
-		    (lambda (colourregion) (>= (nth 1 current) best)))))
+		    (lambda (cregion) (>= (nth 1 current) best)))))
       (setq predicate1 
-	    (lambda (colourregion) t)
+	    (lambda (cregion) t)
 	    predicate2 
-	    (lambda (colourregion) (>= (nth 1 current) best))))
+	    (lambda (cregion) (>= (nth 1 current) best))))
     (dolist (current colour-regions)
       (if (and (equal (nth 0 current) (buffer-name)) 
                (< (nth 1 current) (point)) 
@@ -740,16 +740,16 @@ and place on colour-region-kill-ring."
 (defun colour-region-apply-yank (i)
   "Yank ith colour-region and corresponding text from colour-region-kill-ring, 
 and copy to current buffer at point"
-  (let* ((cregiontoyank (car (nth i colour-region-kill-ring)))
-	 (regionlength (- (nth 2 cregiontoyank) (nth 1 cregiontoyank)))
+  (let* ((cregion (car (nth i colour-region-kill-ring)))
+	 (regionlength (- (nth 2 cregion) (nth 1 cregion)))
 	 (text (nth 1 (nth i colour-region-kill-ring)))
 	 (newcregion
-          (list (car cregiontoyank)
+          (list (car cregion)
                 (point)
                 (+ (point) regionlength)
-                (nth 3 cregiontoyank)
-                (nth 4 cregiontoyank)
-                (nth 5 cregiontoyank))))
+                (nth 3 cregion)
+                (nth 4 cregion)
+                (nth 5 cregion))))
     (if (nth 5 newcregion)
 	(colour-region-apply-hide newcregion)
       (colour-region-apply-unhide newcregion))
@@ -775,7 +775,7 @@ start, end, type and status values."
     (colour-region-apply-overlay cregion)))
 
 (defun colour-region-update-start-end nil
-  "Update the start and end information in colour regions"
+  "Update the start and end information in all colour regions"
   (dolist (current colour-regions)
     (colour-region-apply-update-start-end current)))
 
