@@ -744,23 +744,45 @@ and place on colour-region-kill-ring."
     (setq colour-region-kill-ring-index
           (mod (+ 1 colour-region-kill-ring-index) len))))
 
+(defun colour-region-insert (cregion)
+  "Insert the colour-region CREGION into the buffer at point."
+  (let* ((index (nth 6 cregion))
+         (texts (nth 7 cregion))
+         (text (nth 2 (nth index texts)))
+         (overlay (nth (1- (length cregion)) cregion))
+         (pos (point)))
+    (insert newtext)
+    ;; move overlay to fit new text
+    (move-overlay overlay pos (point))
+    ;; apply overlay and move point back to correct position
+    (colour-region-apply-overlay cregion)
+    (goto-char pos)))
+
 (defun colour-region-apply-yank nil
-  "Yank ith colour-region and corresponding text from colour-region-kill-ring, 
-and copy to current buffer at point"
-  (let* ((cregion (nth i colour-region-kill-ring))
-	 (regionlength (- (nth 2 cregion) (nth 1 cregion)))
-	 (text (nth 1 (nth i colour-region-kill-ring)))
-	 (newcregion
-          (list (car cregion)
-                (point)
-                (+ (point) regionlength)
-                (nth 3 cregion)
-                (nth 4 cregion)
-                (nth 5 cregion))))
-    (if (nth 5 newcregion)
-	(colour-region-apply-hide newcregion)
-      (colour-region-apply-unhide newcregion))
-    (setq colour-regions (append colour-regions (list newcregion)))))
+  "Yank the most recent kill in the `colour-region-kill-ring' into the buffer at point."
+  (colour-region-insert
+   (nth colour-region-kill-ring-index colour-region-kill-ring)))
+
+;; (defun colour-region-apply-yank-pop nil
+;;   "Rotate the `colour-region-kill-ring' and yank the next kill into the buffer at point.
+;; Remove any "
+;;   (colour-region-kill-ring-rotate)
+;;   (colour-region-apply-yank)
+  
+  
+;;   (regionlength (- (nth 2 cregion) (nth 1 cregion)))
+;;   (text (nth 1 (nth i colour-region-kill-ring)))
+;;   (newcregion
+;;    (list (car cregion)
+;;          (point)
+;;          (+ (point) regionlength)
+;;          (nth 3 cregion)
+;;          (nth 4 cregion)
+;;          (nth 5 cregion)))
+;;   (if (nth 5 newcregion)
+;;       (colour-region-apply-hide newcregion)
+;;     (colour-region-apply-unhide newcregion))
+;;   (setq colour-regions (append colour-regions (list newcregion))))
 
 (defun colour-region-apply-update-start-end (cregion)
   "Update the start and end information in CREGION"
