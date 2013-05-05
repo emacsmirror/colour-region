@@ -198,7 +198,6 @@ If set to prompt then prompt to load. If nil then don't load."
 
 (make-variable-buffer-local 'colour-region-load-on-find-file)
 
-;;; create new colour-region format list and append to colour-region-formats
 (defun colour-region-create-new-type nil
   "Create new colour-region format list and append to colour-region-formats."
   (let* ((newtypenum (1+ (length colour-region-formats)))
@@ -264,10 +263,9 @@ With prefix argument of zero apply to all colour-regions in current buffer."
         ;; else give message to user
         (message "No colour-regions found in current buffer!")))))
 
-;;; Create new colour-region and place in colour-regions.
 (defun colour-region-new (comment)
   "Create a new colour-region for selected region (if no region is selected inform user):
-1) Prompt user for comment for colour-region. 
+1) Prompt user for COMMENT for colour-region. 
 2) If a positive prefix argument is given set colour-region type to that corresponding with prefix argument.
    Otherwise use type 1 colour-region.
 3) Set state of colour-region to 1.
@@ -311,7 +309,6 @@ but since I use prefix argument of 0 to mean all buffers, I use 1 to indicate in
 	(deactivate-mark))
     (message "No region selected!")))
 
-;;; Save text-part/create new text part for colour-region(s)
 (defun colour-region-store-text nil
   "If region is selected then run colour-region-new function.
 Otherwise save currently displayed text, comment and state of colour-region(s).
@@ -330,7 +327,6 @@ with type corresponding to that prefix argument."
        (colour-region-apply-save-text-part cregion 1)
        (message "New text region saved")))))
 
-;;; Toggle overlay state of colour-region(s), or create new colour-region if region is selected.
 (defun colour-region-toggle-overlay nil
   "If region is selected then run colour-region-new function.
 Otherwise toggle overlay state of colour-region(s): 
@@ -349,7 +345,6 @@ with type corresponding to that prefix argument."
      (lambda (cregion)
        (colour-region-apply-toggle-overlay cregion)))))
     
-;;; Toggle text-state of colour-region(s) or create new colour-region is region is selected
 (defun colour-region-toggle-text nil
   "If region is selected then run colour-region-new function.
 Otherwise save current text in current text-region of colour-region(s),
@@ -369,7 +364,6 @@ with type corresponding to that prefix argument."
      (lambda (cregion)
        (colour-region-apply-toggle-text-part cregion)))))
     
-;;; Remove colour-region overlay and delete it from colour-regions.
 (defun colour-region-remove nil
   "Remove colour-region(s), and delete from colour-regions.
 
@@ -382,7 +376,6 @@ with type corresponding to that prefix argument."
    (lambda (cregion)
      (colour-region-apply-remove cregion))))
   
-;;; Apply elisp function to colour-region(s)
 (defun colour-region-func (func)
   "Apply a user-supplied elisp function to colour-region(s).
 The function (func) should take two arguments: the start and end positions of a region.
@@ -437,7 +430,6 @@ with type corresponding to that prefix argument."
     (if (equal (buffer-name) (car overlaytochange))
 	(colour-region-apply-overlay overlaytochange))))
 
-;;; jump to next colour-region in current buffer
 (defun colour-region-next nil
   "Move point to next colour-region in current buffer.
 
@@ -473,7 +465,6 @@ corresponding to that prefix argument."
     (if best (goto-char best)
       (message "No further colour-regions found in current buffer!"))))
 
-;;; jump to previous colour-region in current buffer
 (defun colour-region-previous nil
   "Move point to previous colour-region in current buffer.
 
@@ -509,7 +500,6 @@ corresponding to that prefix argument."
     (if best (goto-char best)
       (message "No further colour-regions found in current buffer!"))))
 
-;;; copy colour-region to colour-region-kill-ring
 (defun colour-region-copy nil
   "Copy colour-region to colour-region-kill-ring.
 With no prefix argument copy nearest colour-region.
@@ -520,7 +510,6 @@ With prefix argument of zero copy all colour-regions in current buffer."
    (lambda (cregion)
      (colour-region-apply-copy cregion))))
 
-;;; kill colour-region to colour-region-kill-ring
 (defun colour-region-kill nil
   "Kill colour-region and hidden text to colour-region-kill-ring.
 With no prefix argument kill nearest colour-region.
@@ -531,9 +520,8 @@ With prefix argument of zero kill all colour-regions in current buffer."
    (lambda (cregion)
      (colour-region-apply-kill cregion))))
 
-;;; change the comment of colour-region(s)
 (defun colour-region-change-comment (comment)
-  "Change the comment of a colour-region(s).
+  "Change the COMMENT of a colour-region(s).
 
 If no prefix argument is given, apply to nearest colour-region in current buffer.
 If a prefix argument of 0 is given, apply to all colour-regions in current buffer.
@@ -553,10 +541,9 @@ with type corresponding to that prefix argument."
      (setcar (nthcdr 3 current) comment)
      (colour-region-apply-overlay current))))
 
-;;; Change the type of colour-region(s)
 (defun colour-region-change-type (type)
   "Change the type of a colour-region(s). 
-Prompts for a new type number, if the number entered is larger than the number of 
+Prompts for a new TYPE number, if the number entered is larger than the number of 
 currently available types then a new type is created (with value one higher than the 
 previous highest type number) and the colour-region is set to that type.
 If the number entered is invalid or less than 1, then the type is not changed.
@@ -579,8 +566,6 @@ with type corresponding to that prefix argument."
            (setcar (nthcdr 4 current) type)
            (colour-region-apply-overlay current))))))
 
-;;; find the colour-region satisfying given predicate that is nearest to point
-;; in the current buffer.
 (defun colour-region-find-nearest (predicate)
   "Find the index in colour-regions of the colour-region that is nearest to point
 in the current buffer, and that returns non-nil when passed to 'predicate' function.
@@ -609,15 +594,15 @@ Returns nil if no colour-region satisfying 'predicate' is found in current buffe
     bestindex))
 
 
-;;; apply appropriate overlay properties (according to colour-region-formats) to colourregion
-(defun colour-region-apply-overlay (colourregion)
+(defun colour-region-apply-overlay (cregion)
+  "Apply appropriate overlay properties (according to colour-region-formats) to CREGION"
   ;; get colourregion properties
-  (let* ((storedoverlay (nth (1- (length colourregion)) colourregion))
+  (let* ((storedoverlay (nth (1- (length cregion)) cregion))
 	 (start (overlay-start storedoverlay))
 	 (end (overlay-end storedoverlay))
-	 (comment (nth 3 colourregion))
-	 (regiontype (nth 4 colourregion))
-	 (formattype (nth 5 colourregion))
+	 (comment (nth 3 cregion))
+	 (regiontype (nth 4 cregion))
+	 (formattype (nth 5 cregion))
 	 (formatlist (nth formattype (nth regiontype colour-region-formats)))
 	 (beforestring (concat (nth 0 formatlist)
 			       (if (nth 1 formatlist)
@@ -638,37 +623,37 @@ Returns nil if no colour-region satisfying 'predicate' is found in current buffe
 	(let ((currentproperty (nth (+ i 6) formatlist)))
 	  (overlay-put newoverlay (car currentproperty) (cdr currentproperty))))
       ;; update overlay stored in colourregion
-      (setcar (nthcdr (1- (length colourregion)) colourregion) newoverlay))))
+      (setcar (nthcdr (1- (length cregion)) cregion) newoverlay))))
 
-;;; toggle overlay state of colourregion
-(defun colour-region-apply-toggle-overlay (colourregion)
-  (let ((currentstate (nth 5 colourregion))
-	(textpart (nth (nth 6 colourregion) (nth 7 colourregion))))
-    ;; if current state of colourregion is last state, change to first state,
+(defun colour-region-apply-toggle-overlay (cregion)
+  "Toggle overlay state of CREGION"
+  (let ((currentstate (nth 5 cregion))
+	(textpart (nth (nth 6 cregion) (nth 7 cregion))))
+    ;; if current state of cregion is last state, change to first state,
     ;; otherwise change to next state
-    (if (equal currentstate (1- (length (nth (nth 4 colourregion) colour-region-formats))))
+    (if (equal currentstate (1- (length (nth (nth 4 cregion) colour-region-formats))))
 	(progn
-	  (setcar (nthcdr 5 colourregion) 0)
+	  (setcar (nthcdr 5 cregion) 0)
 	  (setcar textpart 0))
       (progn
-	(setcar (nthcdr 5 colourregion) (1+ currentstate))
+	(setcar (nthcdr 5 cregion) (1+ currentstate))
 	(setcar textpart (1+ currentstate))))
     ;; apply overlay for new state
-    (colour-region-apply-overlay colourregion)))
+    (colour-region-apply-overlay cregion)))
 
-;;; toggle text-part of colourregion
-(defun colour-region-apply-toggle-text-part (colourregion)
+(defun colour-region-apply-toggle-text-part (cregion)
+  "Toggle text-part of CREGION"
   ;; only toggle if there is more than one stored text region
-  (if (> (length (nth 7 colourregion)) 1)
-      (let* ((oldtextnum (nth 6 colourregion))
+  (if (> (length (nth 7 cregion)) 1)
+      (let* ((oldtextnum (nth 6 cregion))
 	     ;; if current text is last one, change to first one
 	     ;; otherwise change to next one
-	     (newtextnum (if (equal oldtextnum (1- (length (nth 7 colourregion))))
+	     (newtextnum (if (equal oldtextnum (1- (length (nth 7 cregion))))
 			     (setq newtextnum 0)
 			   (setq newtextnum (1+ oldtextnum))))
-	     (newtextpart (nth newtextnum (nth 7 colourregion)))
+	     (newtextpart (nth newtextnum (nth 7 cregion)))
 	     (newtext (nth 2 newtextpart))
-	     (storedoverlay (nth (1- (length colourregion)) colourregion))
+	     (storedoverlay (nth (1- (length cregion)) cregion))
 	     (start (overlay-start storedoverlay))
 	     (end (overlay-end storedoverlay))
 	     (newend (+ start (length newtext)))
@@ -676,11 +661,11 @@ Returns nil if no colour-region satisfying 'predicate' is found in current buffe
 	     (currentpoint (point))
 	     (newpoint (if (< currentpoint end) currentpoint (+ currentpoint diff))))
 	;; store current text-part
-	(colour-region-apply-save-text-part colourregion 0)
+	(colour-region-apply-save-text-part cregion 0)
 	;; set state, comment and text-part number to correspond to new text-part
-	(setcar (nthcdr 5 colourregion) (nth 0 newtextpart))
-	(setcar (nthcdr 3 colourregion) (nth 1 newtextpart))
-	(setcar (nthcdr 6 colourregion) newtextnum)
+	(setcar (nthcdr 5 cregion) (nth 0 newtextpart))
+	(setcar (nthcdr 3 cregion) (nth 1 newtextpart))
+	(setcar (nthcdr 6 cregion) newtextnum)
 	;; delete old text and copy new text into buffer
 	(delete-region start end)
 	(goto-char start)
@@ -688,33 +673,26 @@ Returns nil if no colour-region satisfying 'predicate' is found in current buffe
 	;; move overlay to fit new text
 	(move-overlay storedoverlay start newend)
 	;; apply overlay and move point back to correct position
-	(colour-region-apply-overlay colourregion)
+	(colour-region-apply-overlay cregion)
 	(goto-char newpoint))))
 
-;;; Save currently displayed text, comment and state of colourregion, as new text-part in
-;; text-parts list of colourregion.
-;; If pos is 0, copy over text-part corresponding to current display, 
-;; else place it pos positions further/behind current text-part in list according
-;; to whether pos is positive/negative.
-;; New position is calculated modulo the length of the new list so that large pos values
-;; don't cause problems.
-(defun colour-region-apply-save-text-part (colourregion pos)
-  "Save currently displayed text, comment and state of colourregion, as new text-part in
-text-parts list of colourregion.
-If pos is 0, copy over text-part corresponding to current display, 
+(defun colour-region-apply-save-text-part (cregion pos)
+  "Save currently displayed text, comment and state of CREGION, as new text-part in
+text-parts list of cregion.
+If POS is 0, copy over text-part corresponding to current display, 
 else place it pos positions further/behind current text-part in list according
 to whether pos is positive/negative.
-New position is calculated modulo the length of the new list so that large pos values
+New position is calculated modulo the length of the new list so that large POS values
 don't cause problems."
-  (let* ((comment (nth 3 colourregion))
-	 (state (nth 5 colourregion))
-	 (storedoverlay (nth (1- (length colourregion)) colourregion))
+  (let* ((comment (nth 3 cregion))
+	 (state (nth 5 cregion))
+	 (storedoverlay (nth (1- (length cregion)) cregion))
 	 (start (overlay-start storedoverlay))
 	 (end (overlay-end storedoverlay))
 	 (text (buffer-substring-no-properties start end))
 	 (newtextpart (list state comment text))
-	 (textparts (nth 7 colourregion))
-	 (oldpos (nth 6 colourregion))
+	 (textparts (nth 7 cregion))
+	 (oldpos (nth 6 cregion))
 	 ;; will insert newtextpart just before newpos, so set accordingly:
 	 (newpos (if (> pos 0)
 		     (mod (+ oldpos pos) (1+ (length textparts)))
@@ -730,19 +708,17 @@ don't cause problems."
 	  (setcdr (nthcdr (1- newpos) textparts) (cons newtextpart (nthcdr newpos textparts)))
 	(setcdr (nthcdr (1- (length textparts)) textparts) (cons newtextpart nil))))
     ;; set index of current text-part to correspond with newtextpart
-    (setcar (nthcdr 6 colourregion) newpos)))
+    (setcar (nthcdr 6 cregion) newpos)))
 
-;;; remove specific colour-region
-(defun colour-region-apply-remove (colourregion)
-  "Remove colourregion from buffer and colour-regions."
-  (let ((storedoverlay (nth (1- (length colourregion)) colourregion)))
+(defun colour-region-apply-remove (cregion)
+  "Remove CREGION from buffer and colour-regions."
+  (let ((storedoverlay (nth (1- (length cregion)) cregion)))
     (remove-overlays (overlay-start storedoverlay)
 		     (overlay-end storedoverlay))
-    (setq colour-regions (delq colourregion colour-regions))))
+    (setq colour-regions (delq cregion colour-regions))))
 
-;;; kill specific colour-region and stick it in colour-region-kill-ring
 (defun colour-region-apply-kill (cregion)
-  "Kill colourregion (including hidden text) from buffer and colour-regions,
+  "Kill CREGION (including hidden text) from buffer and colour-regions,
 and place on colour-region-kill-ring."
   (colour-region-apply-remove cregion)
   (let ((text (buffer-substring-no-properties
@@ -753,16 +729,14 @@ and place on colour-region-kill-ring."
     (kill-region (nth 1 cregion)
                  (nth 2 cregion))))
 
-;;; copy specific colour-region and stick it in colour-region-kill-ring
 (defun colour-region-apply-copy (cregion)
-  "Copy colourregion and put it in colour-region-kill-ring"
+  "Copy CREGION and put it in colour-region-kill-ring"
   (let ((text (buffer-substring-no-properties
                (nth 1 cregion)
                (nth 2 cregion))))
     (setq colour-region-kill-ring
           (append colour-region-kill-ring (list (list cregion text))))))
 
-;;; yank ith colour-region and text from colour-region-kill-ring, at point
 (defun colour-region-apply-yank (i)
   "Yank ith colour-region and corresponding text from colour-region-kill-ring, 
 and copy to current buffer at point"
@@ -781,41 +755,40 @@ and copy to current buffer at point"
       (colour-region-apply-unhide newcregion))
     (setq colour-regions (append colour-regions (list newcregion)))))
 
-;;; Update the start and end information in colourregion
-(defun colour-region-apply-update-start-end (colourregion)
-  ;; update start and end information
-  (let ((storedoverlay (nth (1- (length colourregion)) colourregion)))
+(defun colour-region-apply-update-start-end (cregion)
+  "Update the start and end information in CREGION"
+  (let ((storedoverlay (nth (1- (length cregion)) cregion)))
     (if (overlayp storedoverlay)
 	(progn
-	  (setcar (nthcdr 1 colourregion)
+	  (setcar (nthcdr 1 cregion)
                   (overlay-start storedoverlay))
-	  (setcar (nthcdr 2 colourregion)
+	  (setcar (nthcdr 2 cregion)
                   (overlay-end storedoverlay))))))
 
-;;; Create and apply a new overlay for colourregion based on 
-;; start, end, type and status values
-(defun colour-region-apply-update-overlay (colourregion)
-  (let* ((start (nth 1 colourregion))
-	 (end (nth 2 colourregion))
+(defun colour-region-apply-update-overlay (cregion)
+  "Create and apply a new overlay for CREGION based on 
+start, end, type and status values."
+  (let* ((start (nth 1 cregion))
+	 (end (nth 2 cregion))
 	 (newoverlay (make-overlay start end)))
-    (setcar (nthcdr (1- (length colourregion)) colourregion) newoverlay)
-    (colour-region-apply-overlay colourregion)))
+    (setcar (nthcdr (1- (length cregion)) cregion) newoverlay)
+    (colour-region-apply-overlay cregion)))
 
-;;; Update the start and end information in colour regions
 (defun colour-region-update-start-end nil
+  "Update the start and end information in colour regions"
   (dolist (current colour-regions)
     (colour-region-apply-update-start-end current)))
 
-;;; Create and update overlays in colour-regions according to
-;; start, end, type and status values
 (defun colour-region-update-overlays nil
+  "Create and update overlays in colour-regions according to
+start, end, type and status values"
   (dolist (current colour-regions)
     (colour-region-apply-update-overlay current)))
 
-;;; Hook for saving colour-regions when emacs is killed.
-;; Note: colour-regions will not be usable after running this function until it
-;; is restored with colour-region-update-overlays
 (defun colour-region-kill-emacs-hook nil
+  "Hook for saving colour-regions when emacs is killed.
+Note: colour-regions will not be usable after running this function until it
+is restored with colour-region-update-overlays"
   ;; need to adjust colour-regions for each buffer, since it is a buffer local variable
   (dolist (thisbuffer (buffer-list)) 
     (with-current-buffer thisbuffer
@@ -839,7 +812,10 @@ Prompt for save if colour-region-save-on-kill equals 'prompt."
 	(colour-region-save))))
 
 (defun colour-region-find-file-hook nil
-  "If colour-region-load-on-find-file is t, load colour-regions from filename returned by colour-region-default-save-file function. If colour-region-load-on-find-file is equal to 'prompt, then prompt the user first. If colour-region-load-on-find-file is nil, or the filename returned by colour-region-default-save-file doesn't exist, then don't load."
+  "If colour-region-load-on-find-file is t, load colour-regions from filename returned by colour-region-default-save-file function.
+If colour-region-load-on-find-file is equal to 'prompt, then prompt the user first.
+If colour-region-load-on-find-file is nil, or the filename returned by colour-region-default-save-file doesn't exist,
+then don't load."
   (let ((filename (colour-region-default-save-file)))
     (if (and colour-region-load-on-find-file
 	     (file-exists-p filename))
@@ -860,8 +836,8 @@ Prompt for save if colour-region-save-on-kill equals 'prompt."
 ;;; function to save all the colour-regions in current buffer
 ;; (there are probably better ways of doing this, but it'll do for now)
 (defun colour-region-save (&optional filename)
-  "Save colour-regions for the current buffer (if there are any) from filename.
-If filename is not provided then the colour-regions are read from the filename returned by 
+  "Save colour-regions for the current buffer (if there are any) from FILENAME.
+If FILENAME is not provided then the colour-regions are read from the filename returned by 
 the colour-region-default-save-file function."
   (interactive)
   (let ((filename2 (or filename
@@ -884,8 +860,8 @@ the colour-region-default-save-file function."
 
 
 (defun colour-region-load (&optional filename)
-  "Load colour-regions for the current buffer from filename.
-If filename is not provided then the colour-regions are stored in the filename returned by 
+  "Load colour-regions for the current buffer from FILENAME.
+If FILENAME is not provided then the colour-regions are stored in the filename returned by 
 the colour-region-default-save-file function."
   (interactive)
   (let ((string)
