@@ -235,7 +235,12 @@ an overlay corresponding to the colour-region")
 
 (make-variable-buffer-local 'colour-regions)
 
-(defvar colour-region-kill-ring nil
+(defcustom colour-region-kill-ring-max 30
+  "The maximum number of elements allowed on the colour-region-kill-ring before old ones are removed."
+  :type 'integer
+  :group 'colour-region)
+
+(defvar colour-region-kill-ring (make-ring colour-region-kill-ring-max)
   "Variable to store killed/copied regions (that may be yanked with colour-region-yank).")
 
 (defun colour-region-apply-according-to-prefix (func)
@@ -726,7 +731,7 @@ and place on colour-region-kill-ring."
                (nth 2 cregion))))
     (setq colour-region-kill-ring
           (append colour-region-kill-ring (list (list cregion text))))
-    (kill-region (nth 1 cregion)
+    (delete-region (nth 1 cregion)
                  (nth 2 cregion))))
 
 (defun colour-region-apply-copy (cregion)
