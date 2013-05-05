@@ -250,17 +250,17 @@ With prefix argument of zero apply to all colour-regions in current buffer."
       (if (equal current-prefix-arg 0)
           (dolist (cregion colour-regions)
             (if (equal (buffer-name) (car cregion))
-                (apply func cregion))) 
+                (apply func (list cregion)))) 
         ;; else if prefix argument is other number, change corresponding colour-regions
         (if (and (<= current-prefix-arg (length colour-region-formats)) (> current-prefix-arg 0))
             (dolist (cregion colour-regions)
               (if (and (equal (buffer-name) (car cregion)) 
                        (equal (nth 4 cregion) (1- current-prefix-arg)))
-                  (apply func cregion)))))
+                  (apply func (list cregion))))))
     ;; otherwise (e.g. no prefix argument) just change the one closest to point
     (let ((bestindex (colour-region-find-nearest (lambda (hideregion) t))))
       (if bestindex (let ((cregion (nth bestindex colour-regions)))
-                      (apply func cregion))
+                      (apply func (list cregion)))
         ;; else give message to user
         (message "No colour-regions found in current buffer!")))))
 
