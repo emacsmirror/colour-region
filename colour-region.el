@@ -241,7 +241,11 @@ an overlay corresponding to the colour-region")
   :group 'colour-region)
 
 (defvar colour-region-kill-ring (make-ring colour-region-kill-ring-max)
-  "Variable to store killed/copied regions (that may be yanked with colour-region-yank).")
+  "Variable to store killed/copied regions (that may be yanked with `colour-region-yank').")
+
+(defvar colour-region-kill-ring-index 0
+  "The index of the current element on the `colour-region-kill-ring'.
+This points to the most recent element unless the ring has been rotated.")
 
 (defun colour-region-apply-according-to-prefix (func)
   "Apply function FUNC to colour region(s) according to current prefix arg.
@@ -731,16 +735,19 @@ and place on colour-region-kill-ring."
 
 (defun colour-region-apply-copy (cregion)
   "Copy CREGION and put it in colour-region-kill-ring"
-  (let ((text (buffer-substring-no-properties
-               (nth 1 cregion)
-               (nth 2 cregion))))
-    (setq colour-region-kill-ring
-          (append colour-region-kill-ring (list (list cregion text))))))
+  (ring-insert colour-region-kill-ring cregion))
 
-(defun colour-region-apply-yank (i)
+(defun colour-region-kill-ring-rotate nil
+  "Rotate the `colour-region-kill-ring-index' so that it points to the next item in the ring."
+  (interactive)
+  (let ((len (cadr colour-region-kill-ring)))
+    (setq colour-region-kill-ring-index
+          (mod (+ 1 colour-region-kill-ring-index) len))))
+
+(defun colour-region-apply-yank nil
   "Yank ith colour-region and corresponding text from colour-region-kill-ring, 
 and copy to current buffer at point"
-  (let* ((cregion (car (nth i colour-region-kill-ring)))
+  (let* ((cregion (nth i colour-region-kill-ring))
 	 (regionlength (- (nth 2 cregion) (nth 1 cregion)))
 	 (text (nth 1 (nth i colour-region-kill-ring)))
 	 (newcregion
