@@ -726,13 +726,8 @@ don't cause problems."
   "Kill CREGION (including hidden text) from buffer and colour-regions,
 and place on colour-region-kill-ring."
   (colour-region-apply-remove cregion)
-  (let ((text (buffer-substring-no-properties
-               (nth 1 cregion)
-               (nth 2 cregion))))
-    (setq colour-region-kill-ring
-          (append colour-region-kill-ring (list (list cregion text))))
-    (delete-region (nth 1 cregion)
-                 (nth 2 cregion))))
+  (ring-insert colour-region-kill-ring cregion)
+  (delete-region (nth 1 cregion) (nth 2 cregion)))
 
 (defun colour-region-apply-copy (cregion)
   "Copy CREGION and put it in colour-region-kill-ring"
