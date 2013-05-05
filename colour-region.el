@@ -248,18 +248,18 @@ With prefix argument of zero apply to all colour-regions in current buffer."
   (if current-prefix-arg
       ;; if prefix argument is 0, change all colour-regions in current buffer
       (if (equal current-prefix-arg 0)
-          (dolist (current colour-regions)
-            (if (equal (buffer-name) (car current))
+          (dolist (cregion colour-regions)
+            (if (equal (buffer-name) (car cregion))
                 (apply func cregion))) 
         ;; else if prefix argument is other number, change corresponding colour-regions
         (if (and (<= current-prefix-arg (length colour-region-formats)) (> current-prefix-arg 0))
-            (dolist (current colour-regions)
-              (if (and (equal (buffer-name) (car current)) 
-                       (equal (nth 4 current) (1- current-prefix-arg)))
+            (dolist (cregion colour-regions)
+              (if (and (equal (buffer-name) (car cregion)) 
+                       (equal (nth 4 cregion) (1- current-prefix-arg)))
                   (apply func cregion)))))
     ;; otherwise (e.g. no prefix argument) just change the one closest to point
     (let ((bestindex (colour-region-find-nearest (lambda (hideregion) t))))
-      (if bestindex (let ((current (nth bestindex colour-regions)))
+      (if bestindex (let ((cregion (nth bestindex colour-regions)))
                       (apply func cregion))
         ;; else give message to user
         (message "No colour-regions found in current buffer!")))))
@@ -741,45 +741,45 @@ don't cause problems."
     (setq colour-regions (delq colourregion colour-regions))))
 
 ;;; kill specific colour-region and stick it in colour-region-kill-ring
-(defun colour-region-apply-kill (colourregion)
+(defun colour-region-apply-kill (cregion)
   "Kill colourregion (including hidden text) from buffer and colour-regions,
 and place on colour-region-kill-ring."
-  (colour-region-apply-remove colourregion)
+  (colour-region-apply-remove cregion)
   (let ((text (buffer-substring-no-properties
-               (nth 1 colourregion)
-               (nth 2 colourregion))))
+               (nth 1 cregion)
+               (nth 2 cregion))))
     (setq colour-region-kill-ring
-          (append colour-region-kill-ring (list (list colourregion text))))
-    (kill-region (nth 1 colourregion)
-                 (nth 2 colourregion))))
+          (append colour-region-kill-ring (list (list cregion text))))
+    (kill-region (nth 1 cregion)
+                 (nth 2 cregion))))
 
 ;;; copy specific colour-region and stick it in colour-region-kill-ring
-(defun colour-region-apply-copy (colourregion)
+(defun colour-region-apply-copy (cregion)
   "Copy colourregion and put it in colour-region-kill-ring"
   (let ((text (buffer-substring-no-properties
-               (nth 1 colourregion)
-               (nth 2 colourregion))))
+               (nth 1 cregion)
+               (nth 2 cregion))))
     (setq colour-region-kill-ring
-          (append colour-region-kill-ring (list (list colourregion text))))))
+          (append colour-region-kill-ring (list (list cregion text))))))
 
 ;;; yank ith colour-region and text from colour-region-kill-ring, at point
 (defun colour-region-apply-yank (i)
   "Yank ith colour-region and corresponding text from colour-region-kill-ring, 
 and copy to current buffer at point"
-  (let* ((colourregiontoyank (nth 0 (nth i colour-region-kill-ring)))
-	 (regionlength (- (nth 2 colourregiontoyank) (nth 1 colourregiontoyank)))
+  (let* ((cregiontoyank (car (nth i colour-region-kill-ring)))
+	 (regionlength (- (nth 2 cregiontoyank) (nth 1 cregiontoyank)))
 	 (text (nth 1 (nth i colour-region-kill-ring)))
-	 (newcolourregion
-          (list (nth 0 colourregiontoyank)
+	 (newcregion
+          (list (car cregiontoyank)
                 (point)
                 (+ (point) regionlength)
-                (nth 3 colourregiontoyank)
-                (nth 4 colourregiontoyank)
-                (nth 5 colourregiontoyank))))
-    (if (nth 5 newcolourregion)
-	(colour-region-apply-hide newcolourregion)
-      (colour-region-apply-unhide newcolourregion))
-    (setq colour-regions (append colour-regions (list newcolourregion)))))
+                (nth 3 cregiontoyank)
+                (nth 4 cregiontoyank)
+                (nth 5 cregiontoyank))))
+    (if (nth 5 newcregion)
+	(colour-region-apply-hide newcregion)
+      (colour-region-apply-unhide newcregion))
+    (setq colour-regions (append colour-regions (list newcregion)))))
 
 ;;; Update the start and end information in colourregion
 (defun colour-region-apply-update-start-end (colourregion)
