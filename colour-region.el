@@ -745,7 +745,12 @@ and place on colour-region-kill-ring."
 
 (defun colour-region-apply-copy (cregion)
   "Copy CREGION and put it in colour-region-kill-ring"
-  (ring-insert colour-region-kill-ring cregion))
+  (let* ((newcregion (copy-tree cregion))
+         (oldoverlay (car (last cregion))))
+    (setf (car (last newcregion))
+          (copy-overlay oldoverlay))
+    (ring-insert colour-region-kill-ring
+                 newcregion)))
 
 (defun colour-region-kill-ring-rotate nil
   "Rotate the `colour-region-kill-ring-index' so that it points to the next item in the ring."
