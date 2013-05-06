@@ -776,31 +776,16 @@ and place on colour-region-kill-ring."
 (defun colour-region-yank nil
   "Yank the most recent kill in the `colour-region-kill-ring' into the buffer at point."
   (interactive)
-  (let ((newcregion (colour-region-copy
+  (let ((newcregion (colour-region-apply-copy
                      (ring-ref colour-region-kill-ring colour-region-kill-ring-index))))
     (colour-region-insert newcregion)
     (setq colour-regions (append colour-regions (list newcregion)))))
 
-;; (defun colour-region-apply-yank-pop nil
-;;   "Rotate the `colour-region-kill-ring' and yank the next kill into the buffer at point.
-;; Remove any "
-;;   (colour-region-kill-ring-rotate)
-;;   (colour-region-apply-yank)
-  
-  
-;;   (regionlength (- (nth 2 cregion) (nth 1 cregion)))
-;;   (text (nth 1 (nth i colour-region-kill-ring)))
-;;   (newcregion
-;;    (list (car cregion)
-;;          (point)
-;;          (+ (point) regionlength)
-;;          (nth 3 cregion)
-;;          (nth 4 cregion)
-;;          (nth 5 cregion)))
-;;   (if (nth 5 newcregion)
-;;       (colour-region-apply-hide newcregion)
-;;     (colour-region-apply-unhide newcregion))
-;;   (setq colour-regions (append colour-regions (list newcregion))))
+(defun colour-region-yank-pop nil
+  "Rotate the `colour-region-kill-ring' and yank the next kill into the buffer at point."
+  (interactive)
+  (colour-region-kill-ring-rotate)
+  (colour-region-yank))
 
 (defun colour-region-apply-update-start-end (cregion)
   "Update the start and end information in CREGION to correspond with the overlay."
