@@ -521,14 +521,15 @@ corresponding to that prefix argument."
       (message "No further colour-regions found in current buffer!"))))
 
 (defun colour-region-copy nil
-  "Copy colour-region to colour-region-kill-ring.
+  "Copy colour-region to `colour-region-kill-ring'.
 With no prefix argument copy nearest colour-region.
 With non-zero prefix argument copy all colour-regions of type corresponding to argument.
 With prefix argument of zero copy all colour-regions in current buffer."
   (interactive)
   (colour-region-apply-according-to-prefix
    (lambda (cregion)
-     (colour-region-apply-copy cregion))))
+     (ring-insert colour-region-kill-ring
+                  (colour-region-apply-copy cregion)))))
 
 (defun colour-region-kill nil
   "Kill colour-region and hidden text to colour-region-kill-ring.
@@ -744,13 +745,12 @@ and place on colour-region-kill-ring."
   (delete-region (nth 1 cregion) (nth 2 cregion)))
 
 (defun colour-region-apply-copy (cregion)
-  "Copy CREGION and put it in colour-region-kill-ring"
+  "Returns a copy of colour-region CREGION (with a new overlay)."
   (let* ((newcregion (copy-tree cregion))
          (oldoverlay (car (last cregion))))
     (setf (car (last newcregion))
           (copy-overlay oldoverlay))
-    (ring-insert colour-region-kill-ring
-                 newcregion)))
+    newcregion))
 
 (defun colour-region-kill-ring-rotate nil
   "Rotate the `colour-region-kill-ring-index' so that it points to the next item in the ring."
@@ -764,20 +764,21 @@ and place on colour-region-kill-ring."
   (let* ((index (nth 6 cregion))
          (texts (nth 7 cregion))
          (text (nth 2 (nth index texts)))
+         (overlay (car (last cregion)))
          (pos (point)))
     (insert text)
-    ;; create a new overlay
-    (setf (nth (1- (length cregion)) cregion)
-          (make-overlay pos (+ pos (length text))))
-    ;; apply overlay and move point back to correct position
+    ;; Move the overlay
+    (move-overlay overlay pos (point))
+    ;; Apply overlay and move point back to correct position
     (colour-region-apply-overlay cregion)
     (goto-char pos)))
 
 (defun colour-region-yank nil
   "Yank the most recent kill in the `colour-region-kill-ring' into the buffer at point."
   (interactive)
-  (let ((cregion (ring-ref colour-region-kill-ring colour-region-kill-ring-index)))
-    (colour-region-insert cregion)
+  (let ((newcregion (colour-region-copy
+                     (ring-ref colour-region-kill-ring colour-region-kill-ring-index))))
+    (colour-region-insert newcregion)
     (setq colour-regions (append colour-regions (list newcregion)))))
 
 ;; (defun colour-region-apply-yank-pop nil
