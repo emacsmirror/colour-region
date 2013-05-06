@@ -769,13 +769,18 @@ and place on colour-region-kill-ring."
           (mod (+ 1 colour-region-kill-ring-index) len))))
 
 (defun colour-region-insert (cregion)
-  "Insert the colour-region CREGION into the buffer at point."
+  "Insert the colour-region CREGION into the buffer at point.
+You should make sure to check that you are not already in a colour-region
+using the `colour-region-in-colour-region-p' function."
   (let* ((index (nth 6 cregion))
          (texts (nth 7 cregion))
          (text (nth 2 (nth index texts)))
          (overlay (car (last cregion)))
          (pos (point)))
     (insert text)
+    ;; Change the start/end information
+    (setf (nth 1 cregion) pos
+          (nth 2 cregion) (point))
     ;; Move the overlay
     (move-overlay overlay pos (point))
     ;; Apply overlay and move point back to correct position
@@ -785,16 +790,20 @@ and place on colour-region-kill-ring."
 (defun colour-region-yank nil
   "Yank the most recent kill in the `colour-region-kill-ring' into the buffer at point."
   (interactive)
-  (let ((newcregion (colour-region-apply-copy
-                     (ring-ref colour-region-kill-ring colour-region-kill-ring-index))))
-    (colour-region-insert newcregion)
-    (setq colour-regions (append colour-regions (list newcregion)))))
+  (if (colour-region-in-colour-region-p)
+      (error "You are already in a colour-region, wont yank into it")
+    (let ((newcregion (colour-region-apply-copy
+                       (ring-ref colour-region-kill-ring colour-region-kill-ring-index))))
+      (colour-region-insert newcregion)
+      (setq colour-regions (append colour-regions (list newcregion))))))
 
 (defun colour-region-yank-pop nil
   "Rotate the `colour-region-kill-ring' and yank the next kill into the buffer at point."
   (interactive)
-  (colour-region-kill-ring-rotate)
-  (colour-region-yank))
+  (if (colour-region-in-colour-region-p)
+      (error "You are already in a colour-region, wont yank into it")
+    (colour-region-kill-ring-rotate)
+    (colour-region-yank)))
 
 (defun colour-region-apply-update-start-end (cregion)
   "Update the start and end information in CREGION to correspond with the overlay."
