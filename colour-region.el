@@ -173,7 +173,18 @@ and apply different overlays to them."
       (:background "pink" :foreground "black") nil "]@"
       (:background "pink" :foreground "black")
       (face . (:background "pink")))))
-  "List of text-properties to apply to each region type."
+  "List of text-properties to apply to the different states of each region type.
+Each element is a list whose elements correspond to the different states of the associated region type.
+The elements corresponding to different states are lists containing the following elements:
+
+The 'before-string property for the overlay
+A value indicating whether the region text should be added to the before-string
+A list of face properties for the before-string
+A value indicating whether the region text should be added to the after-string
+The 'after-string property for the overlay
+A list of face properties for the after-string
+All further elements in the list are cons cells of (property . value) pairs to be applied to the overlay.
+"
   :type '(repeat sexp)
   :group 'colour-region)
 
@@ -602,7 +613,6 @@ Returns nil if no colour-region satisfying 'predicate' is found in current buffe
 		  (setq nearestoverlaypos (nth 2 current) bestindex i))))))
     bestindex))
 
-
 (defun colour-region-apply-overlay (cregion)
   "Apply appropriate overlay properties (according to colour-region-formats) to CREGION"
   ;; get colourregion properties
@@ -751,17 +761,18 @@ and place on colour-region-kill-ring."
          (text (nth 2 (nth index texts)))
          (overlay (nth (1- (length cregion)) cregion))
          (pos (point)))
-    (insert newtext)
+    (insert text)
     ;; move overlay to fit new text
     (move-overlay overlay pos (point))
     ;; apply overlay and move point back to correct position
     (colour-region-apply-overlay cregion)
     (goto-char pos)))
 
-(defun colour-region-apply-yank nil
+(defun colour-region-yank nil
   "Yank the most recent kill in the `colour-region-kill-ring' into the buffer at point."
+  (interactive)
   (colour-region-insert
-   (nth colour-region-kill-ring-index colour-region-kill-ring)))
+   (ring-ref colour-region-kill-ring colour-region-kill-ring-index)))
 
 ;; (defun colour-region-apply-yank-pop nil
 ;;   "Rotate the `colour-region-kill-ring' and yank the next kill into the buffer at point.
@@ -785,7 +796,7 @@ and place on colour-region-kill-ring."
 ;;   (setq colour-regions (append colour-regions (list newcregion))))
 
 (defun colour-region-apply-update-start-end (cregion)
-  "Update the start and end information in CREGION"
+  "Update the start and end information in CREGION to correspond with the overlay."
   (let ((storedoverlay (nth (1- (length cregion)) cregion)))
     (if (overlayp storedoverlay)
 	(progn
