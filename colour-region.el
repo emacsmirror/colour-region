@@ -606,13 +606,22 @@ Returns nil if no colour-region satisfying 'predicate' is found in current buffe
 	      (setq nearestoverlaypos (nth 1 current) bestindex i) 
 	    ;; else if start position of overlay is closer to point 
 	    ;; than nearestoverlaypos is...
-	    (if (< (abs (- (nth 1 current) (point))) (abs (- nearestoverlaypos (point))))
+	    (if (< (abs (- (nth 1 current) (point)))
+                   (abs (- nearestoverlaypos (point))))
 		(setq nearestoverlaypos (nth 1 current) bestindex i)
 	      ;; otherwise, if end position of overlay is closer to point
 	      ;; than nearestoverlaypos..
 	      (if (< (abs (- (nth 2 current) (point))) (abs (- nearestoverlaypos (point))))
 		  (setq nearestoverlaypos (nth 2 current) bestindex i))))))
     bestindex))
+
+(defun* colour-region-in-colour-region-p (&optional (pos (point)))
+  "Return non-nil if buffer position POS lies within a colour-region.
+By default POS is set to the current cursor position."
+  (colour-region-find-nearest
+   (lambda (cregion)
+     (and (> pos (nth 1 cregion))
+          (< pos (nth 2 cregion))))))
 
 (defun colour-region-apply-overlay (cregion)
   "Apply appropriate overlay properties (according to colour-region-formats) to CREGION"
