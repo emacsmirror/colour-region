@@ -759,11 +759,11 @@ and place on colour-region-kill-ring."
   (let* ((index (nth 6 cregion))
          (texts (nth 7 cregion))
          (text (nth 2 (nth index texts)))
-         (overlay (nth (1- (length cregion)) cregion))
          (pos (point)))
     (insert text)
-    ;; move overlay to fit new text
-    (move-overlay overlay pos (point))
+    ;; create a new overlay
+    (setf (nth (1- (length cregion)) cregion)
+          (make-overlay pos (+ pos (length text))))
     ;; apply overlay and move point back to correct position
     (colour-region-apply-overlay cregion)
     (goto-char pos)))
@@ -771,8 +771,9 @@ and place on colour-region-kill-ring."
 (defun colour-region-yank nil
   "Yank the most recent kill in the `colour-region-kill-ring' into the buffer at point."
   (interactive)
-  (colour-region-insert
-   (ring-ref colour-region-kill-ring colour-region-kill-ring-index)))
+  (let ((cregion (ring-ref colour-region-kill-ring colour-region-kill-ring-index)))
+    (colour-region-insert cregion)
+    (setq colour-regions (append colour-regions (list newcregion)))))
 
 ;; (defun colour-region-apply-yank-pop nil
 ;;   "Rotate the `colour-region-kill-ring' and yank the next kill into the buffer at point.
