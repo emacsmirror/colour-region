@@ -646,17 +646,19 @@ By default POS is set to the current cursor position."
 			      (nth 4 formatlist)))
 	 (afterstringformat (nth 5 formatlist)))
     ;; make new overlay and apply appropriate properties
-    (remove-overlays start end)
-    (let ((newoverlay (make-overlay start end)))
-      (overlay-put newoverlay 'before-string
-		   (propertize beforestring 'face beforestringformat))
-      (overlay-put newoverlay 'after-string
-		   (propertize afterstring 'face afterstringformat))
-      (dotimes (i (- (length formatlist) 6))
-	(let ((currentproperty (nth (+ i 6) formatlist)))
-	  (overlay-put newoverlay (car currentproperty) (cdr currentproperty))))
-      ;; update overlay stored in colourregion
-      (setcar (nthcdr (1- (length cregion)) cregion) newoverlay))))
+    ;; (but only if old overlay is valid)
+    (unless (or (not start) (not end))
+      (remove-overlays start end)
+      (let ((newoverlay (make-overlay start end)))
+        (overlay-put newoverlay 'before-string
+                     (propertize beforestring 'face beforestringformat))
+        (overlay-put newoverlay 'after-string
+                     (propertize afterstring 'face afterstringformat))
+        (dotimes (i (- (length formatlist) 6))
+          (let ((currentproperty (nth (+ i 6) formatlist)))
+            (overlay-put newoverlay (car currentproperty) (cdr currentproperty))))
+        ;; update overlay stored in colourregion
+        (setcar (nthcdr (1- (length cregion)) cregion) newoverlay)))))
 
 (defun colour-region-apply-toggle-overlay (cregion)
   "Toggle overlay state of CREGION"
