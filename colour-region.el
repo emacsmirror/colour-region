@@ -57,9 +57,12 @@
 
 ;;; Customize:
 ;;
-;; `colour-region-formats' : List of text-properties to apply to each region type.
+;; `colour-region-formats' : List of text-properties to apply to the different states of each region type.
 ;; `colour-region-save-on-kill' : If set to t then save colour-regions when buffer is killed.
 ;; `colour-region-load-on-find-file' : If set to t then always load colour-regions when a new file is opened.
+;; `colour-region-kill-ring-max' : The maximum number of elements allowed on the colour-region-kill-ring before old ones are 
+;;                                 removed.
+
 
 ;;
 ;; All of the above can customized by:
@@ -573,7 +576,7 @@ If no prefix argument is given, apply to nearest colour-region in current buffer
 If a prefix argument of 0 is given, apply to all colour-regions in current buffer.
 If a positive non-zero prefix argument is given, apply to all colour-regions in current buffer
 with type corresponding to that prefix argument."
-  (interactive (string-to-number (read-no-blanks-input "New type (default is current type): ")))
+  (interactive (list (read-number (format  "New type (an integer > 1) : "))))
   ;; if number entered is higher than highest type available, create new type and use it
   (if (> type (length colour-region-formats))
       (progn
@@ -584,8 +587,8 @@ with type corresponding to that prefix argument."
    (lambda (cregion)
      (if (> type -1)
          (progn
-           (setcar (nthcdr 4 current) type)
-           (colour-region-apply-overlay current))))))
+           (setcar (nthcdr 4 cregion) type)
+           (colour-region-apply-overlay cregion))))))
 
 (defun colour-region-find-nearest (predicate)
   "Find the index in colour-regions of the colour-region that is nearest to point
