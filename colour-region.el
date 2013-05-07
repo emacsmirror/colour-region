@@ -633,35 +633,36 @@ By default POS is set to the current cursor position."
 (defun colour-region-apply-overlay (cregion)
   "Apply appropriate overlay properties (according to colour-region-formats) to CREGION"
   ;; get colourregion properties
-  (let* ((storedoverlay (nth (1- (length cregion)) cregion))
-	 (start (overlay-start storedoverlay))
-	 (end (overlay-end storedoverlay))
-	 (comment (nth 3 cregion))
-	 (regiontype (nth 4 cregion))
-	 (formattype (nth 5 cregion))
-	 (formatlist (nth formattype (nth regiontype colour-region-formats)))
-	 (beforestring (concat (nth 0 formatlist)
-			       (if (nth 1 formatlist)
-				   comment "")))
-	 (beforestringformat (nth 2 formatlist))
-	 (afterstring (concat (if (nth 3 formatlist)
-				  comment "")
-			      (nth 4 formatlist)))
-	 (afterstringformat (nth 5 formatlist)))
-    ;; make new overlay and apply appropriate properties
-    ;; (but only if old overlay is valid)
-    (unless (or (not start) (not end))
-      (remove-overlays start end)
-      (let ((newoverlay (make-overlay start end)))
-        (overlay-put newoverlay 'before-string
-                     (propertize beforestring 'face beforestringformat))
-        (overlay-put newoverlay 'after-string
-                     (propertize afterstring 'face afterstringformat))
-        (dotimes (i (- (length formatlist) 6))
-          (let ((currentproperty (nth (+ i 6) formatlist)))
-            (overlay-put newoverlay (car currentproperty) (cdr currentproperty))))
-        ;; update overlay stored in colourregion
-        (setcar (nthcdr (1- (length cregion)) cregion) newoverlay)))))
+  (let ((storedoverlay (nth (1- (length cregion)) cregion)))
+    (unless (not (overlayp storedoverlay))
+      (let* ((start (overlay-start storedoverlay))
+             (end (overlay-end storedoverlay))
+             (comment (nth 3 cregion))
+             (regiontype (nth 4 cregion))
+             (formattype (nth 5 cregion))
+             (formatlist (nth formattype (nth regiontype colour-region-formats)))
+             (beforestring (concat (nth 0 formatlist)
+                                   (if (nth 1 formatlist)
+                                       comment "")))
+             (beforestringformat (nth 2 formatlist))
+             (afterstring (concat (if (nth 3 formatlist)
+                                      comment "")
+                                  (nth 4 formatlist)))
+             (afterstringformat (nth 5 formatlist)))
+        ;; make new overlay and apply appropriate properties
+        ;; (but only if old overlay is valid)
+        (unless (or (not start) (not end))
+          (remove-overlays start end)
+          (let ((newoverlay (make-overlay start end)))
+            (overlay-put newoverlay 'before-string
+                         (propertize beforestring 'face beforestringformat))
+            (overlay-put newoverlay 'after-string
+                         (propertize afterstring 'face afterstringformat))
+            (dotimes (i (- (length formatlist) 6))
+              (let ((currentproperty (nth (+ i 6) formatlist)))
+                (overlay-put newoverlay (car currentproperty) (cdr currentproperty))))
+            ;; update overlay stored in colourregion
+            (setcar (nthcdr (1- (length cregion)) cregion) newoverlay)))))))
 
 (defun colour-region-apply-toggle-overlay (cregion)
   "Toggle overlay state of CREGION"
