@@ -427,11 +427,14 @@ with type corresponding to that prefix argument."
      (let* ((oldpoint (point))
             (start (nth 1 cregion))
             (end (nth 2 cregion))
+            (comment (nth 3 cregion))
             (index (position cregion colour-regions))
             newpoint change)
        (goto-char end)
        ;; call function on current overlay 
-       (funcall func2 start end)
+       (condition-case err
+           (funcall func2 start end)
+         (error (message "Error applying function to colour-region with comment: %s" comment)))
        ;; work out how much buffer positions have changed
        (setq newpoint (point))
        (setq change (- newpoint end))
