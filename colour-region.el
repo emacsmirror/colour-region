@@ -38,10 +38,81 @@
 ;; If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary: 
+;; 
+;; This library is based on hide-region.el (see http://www.emacswiki.org/emacs/hide-region.el).
+;; You can define areas of the buffer as "colour-regions" which can be toggled between various states,
+;; e.g. for hiding or highlighting the text. Each colour-region can also contain several different texts which can be 
+;; toggled between. 
+;; I'm not sure how useful this is in practice, but it was fun to build.
+;; 
+;; * Creating colour-regions of different types
 ;;
+;; You can create a new colour-region by selecting an area of text in the buffer, and executing any of the following 
+;; commands:
 ;; 
-;; Toggle regions of the buffer with different text snippets
+;; - colour-region-new
+;; - colour-region-store-text
+;; - colour-region-toggle-overlay
+;; - colour-region-toggle-text
 ;; 
+;; You can choose what type the new colour-region should have by using an appropriate prefix key,
+;; e.g. using a prefix of C-3 will create a type 3 colour-region (which is green by default).
+;; The colour and formatting for a particular type of colour-region can be customized using the `colour-region-formats' option. 
+;; * Prefix keys for commands
+;; For many of the commands you can choose which regions to apply them to by using the appropriate prefix key:
+;; 
+;;  - No prefix key means apply the command to the colour-region nearest point.
+;;  - A prefix of 0 (i.e. pressing C-0 before entering the command) means apply the command to all colour-regions
+;;    in the current buffer.
+;;  - A positive non-zero prefix of say N means apply the command to all colour-regions of the Nth type
+;;    (that were created using the same prefix).
+;;
+;; * Navigation
+;;
+;; You can quickly move between colour regions using the following commands:
+;; 
+;; - colour-region-next 
+;; - colour-region-previous 
+;; 
+;; Both of these commands take prefix arg to specify which colour-regions to consider when moving.
+;; See the commands documentation for details.
+;; * Copying/pasting/removing colour-reginos
+;; Killed/copied colour-regions are stored in `colour-region-kill-ring'.
+;; The following commands can be used for copying and pasting colour-regions.
+;; 
+;; - colour-region-remove
+;; - colour-region-copy
+;; - colour-region-kill
+;; - colour-region-kill-ring-rotate
+;; - colour-region-yank
+;; - colour-region-yank-pop
+;; 
+;; The remove/copy/kill commands accept the previously mentioned prefix keys to specify with regions they apply to.
+;; See the commands documentation for details.
+;;
+;; * Altering colour-regions
+;;
+;; The following commands can be used to alter the content and display format of colour-regions:
+;; 
+;; - colour-region-toggle-overlay
+;; - colour-region-toggle-text
+;; - colour-region-change-comment
+;; - colour-region-change-type
+;; - colour-region-store-text
+;; - colour-region-func
+;; 
+;; All of these commands accept the previously mentioned prefix keys for specifying which regions they apply to.
+;; See the commands documentation for details.
+;;
+;; * Saving colour-regions
+;;
+;; These commands can be used for loading and saving colour-regions.
+;; 
+;; - colour-region-load 
+;; - colour-region-save
+;;  
+;;;;
+
 
 ;;; Installation:
 ;;
@@ -70,6 +141,9 @@
 ;;
 
 ;;; Change log:
+;; 7-May-2013      
+;;    Last-Updated: 2013-05-04 21:37:20 (Joe Bloggs)
+;;    Try org-readme-sync
 ;;	
 ;; 2013/05/04
 ;;      * First released.
