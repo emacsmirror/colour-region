@@ -6,7 +6,7 @@
 ;; Maintainer: Joe Bloggs <vapniks@yahoo.com>
 ;; Copyleft (Ↄ) 2013, Joe Bloggs, all rites reversed.
 ;; Created: Sometime in 2008 (can't remember when exactly)
-;; Version: 0.1
+;; Version: 0.2
 ;; Last-Updated: 2013-05-04 21:37:20
 ;;           By: Joe Bloggs
 ;; URL: https://github.com/vapniks/colour-region
