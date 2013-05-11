@@ -363,6 +363,7 @@ With prefix argument of zero apply to all colour-regions in current buffer."
         ;; else give message to user
         (message "No colour-regions found in current buffer!")))))
 
+;;;###autoload
 (defun colour-region-new (comment)
   "Create a new colour-region for selected region (if no region is selected inform user):
 1) Prompt user for COMMENT for colour-region. 
@@ -409,6 +410,7 @@ but since I use prefix argument of 0 to mean all buffers, I use 1 to indicate in
 	(deactivate-mark))
     (message "No region selected!")))
 
+;;;###autoload
 (defun colour-region-store-text nil
   "If region is selected then run colour-region-new function.
 Otherwise save currently displayed text, comment and state of colour-region(s).
@@ -427,6 +429,7 @@ with type corresponding to that prefix argument."
        (colour-region-apply-save-text-part cregion 1)
        (message "New text region saved")))))
 
+;;;###autoload
 (defun colour-region-toggle-overlay nil
   "If region is selected then run colour-region-new function.
 Otherwise toggle overlay state of colour-region(s): 
@@ -444,7 +447,8 @@ with type corresponding to that prefix argument."
     (colour-region-apply-according-to-prefix
      (lambda (cregion)
        (colour-region-apply-toggle-overlay cregion)))))
-    
+
+;;;###autoload
 (defun colour-region-toggle-text nil
   "If region is selected then run colour-region-new function.
 Otherwise save current text in current text-region of colour-region(s),
@@ -463,7 +467,8 @@ with type corresponding to that prefix argument."
     (colour-region-apply-according-to-prefix
      (lambda (cregion)
        (colour-region-apply-toggle-text-part cregion)))))
-    
+
+;;;###autoload
 (defun colour-region-remove nil
   "Remove colour-region(s), and delete from colour-regions.
 
@@ -477,6 +482,7 @@ with type corresponding to that prefix argument."
      (colour-region-apply-remove cregion))))
 
 ;; Make sure func2 arg has different name to func1 arg in colour-region-apply-according-to-prefix function
+;;;###autoload
 (defun colour-region-func (func2)
   "Apply a user-supplied elisp function to colour-region(s).
 The function (func) should take two arguments: the start and end positions of a region.
@@ -534,6 +540,7 @@ with type corresponding to that prefix argument."
     (if (equal (buffer-name) (car cregion))
 	(colour-region-apply-overlay cregion))))
 
+;;;###autoload
 (defun colour-region-next nil
   "Move point to next colour-region in current buffer.
 
@@ -569,6 +576,7 @@ corresponding to that prefix argument."
     (if best (goto-char best)
       (message "No further colour-regions found in current buffer!"))))
 
+;;;###autoload
 (defun colour-region-previous nil
   "Move point to previous colour-region in current buffer.
 
@@ -604,6 +612,7 @@ corresponding to that prefix argument."
     (if best (goto-char best)
       (message "No further colour-regions found in current buffer!"))))
 
+;;;###autoload
 (defun colour-region-copy nil
   "Copy colour-region to `colour-region-kill-ring'.
 With no prefix argument copy nearest colour-region.
@@ -615,6 +624,7 @@ With prefix argument of zero copy all colour-regions in current buffer."
      (ring-insert colour-region-kill-ring
                   (colour-region-apply-copy cregion)))))
 
+;;;###autoload
 (defun colour-region-kill nil
   "Kill colour-region and hidden text to colour-region-kill-ring.
 With no prefix argument kill nearest colour-region.
@@ -625,6 +635,7 @@ With prefix argument of zero kill all colour-regions in current buffer."
    (lambda (cregion)
      (colour-region-apply-kill cregion))))
 
+;;;###autoload
 (defun colour-region-change-comment (comment)
   "Change the COMMENT of a colour-region(s).
 
@@ -646,6 +657,7 @@ with type corresponding to that prefix argument."
      (setcar (nthcdr 3 current) comment)
      (colour-region-apply-overlay current))))
 
+;;;###autoload
 (defun colour-region-change-type (type)
   "Change the type of a colour-region(s). 
 Prompts for a new TYPE number, if the number entered is larger than the number of 
@@ -848,6 +860,7 @@ and place on colour-region-kill-ring."
           (copy-overlay oldoverlay))
     newcregion))
 
+;;;###autoload
 (defun colour-region-kill-ring-rotate nil
   "Rotate the `colour-region-kill-ring-index' so that it points to the next item in the ring."
   (interactive)
@@ -874,6 +887,7 @@ using the `colour-region-in-colour-region-p' function."
     (colour-region-apply-overlay cregion)
     (goto-char pos)))
 
+;;;###autoload
 (defun colour-region-yank nil
   "Yank the most recent kill in the `colour-region-kill-ring' into the buffer at point."
   (interactive)
@@ -884,6 +898,7 @@ using the `colour-region-in-colour-region-p' function."
       (colour-region-insert newcregion)
       (setq colour-regions (append colour-regions (list newcregion))))))
 
+;;;###autoload
 (defun colour-region-yank-pop nil
   "Rotate the `colour-region-kill-ring' and yank the next kill into the buffer at point."
   (interactive)
@@ -978,6 +993,7 @@ This is added to `find-file-hook' when `colour-region-initialize' is run."
 
 ;;; function to save all the colour-regions in current buffer
 ;; (there are probably better ways of doing this, but it'll do for now)
+;;;###autoload
 (defun colour-region-save (&optional filename)
   "Save colour-regions for the current buffer (if there are any) from FILENAME.
 If FILENAME is not provided then the colour-regions are read from the filename returned by 
@@ -1001,6 +1017,7 @@ the colour-region-default-save-file function."
       ;; restore overlays to colour-regions
       (colour-region-update-overlays))))
 
+;;;###autoload
 (defun colour-region-load (&optional filename)
   "Load colour-regions for the current buffer from FILENAME.
 If FILENAME is not provided then the colour-regions are stored in the filename returned by 
