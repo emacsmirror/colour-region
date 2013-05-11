@@ -39,6 +39,8 @@
 
 ;;; Commentary: 
 ;; 
+;; Bitcoin donations gratefully accepted: 1Aa6Hh39RCBvr6BrxDWvThYynuKcwv6NL4
+
 ;; This library is based on hide-region.el (see http://www.emacswiki.org/emacs/hide-region.el).
 ;; You can define areas of the buffer as "colour-regions" which can be toggled between various states,
 ;; e.g. for hiding or highlighting the text. Each colour-region can also contain several different texts which can be 
