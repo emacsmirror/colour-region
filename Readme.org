@@ -110,3 +110,11 @@ They are added to the relevant hooks when colour-region-initialize is run.
      (require 'colour-region)
      (colour-region-initialize)
 
+* Functions
+** Interactive Functions
+
+** Internal Functions
+* Variables
+** Customizable Variables
+
+** Internal Variables
